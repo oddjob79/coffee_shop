@@ -174,24 +174,51 @@ def verify_decode_jwt(token):
                 'description': 'Unable to find the appropriate key.'
             }, 400)
 
-'''
-@TODO implement @requires_auth(permission) decorator method
-    @INPUTS
-        permission: string permission (i.e. 'post:drink')
+# '''
+# @TODO implement @requires_auth(permission) decorator method
+#     @INPUTS
+#         permission: string permission (i.e. 'post:drink')
+#
+#     it should use the get_token_auth_header method to get the token
+#     it should use the verify_decode_jwt method to decode the jwt
+#     it should use the check_permissions method validate claims and check the requested permission
+#     return the decorator which passes the decoded payload to the decorated method
+# '''
 
-    it should use the get_token_auth_header method to get the token
-    it should use the verify_decode_jwt method to decode the jwt
-    it should use the check_permissions method validate claims and check the requested permission
-    return the decorator which passes the decoded payload to the decorated method
-'''
+#  Replaced with method given during coursework - provided by Gabe Ruttner
 def requires_auth(permission=''):
+    # decorators take in the function (f) which they decorate
     def requires_auth_decorator(f):
+        # need wraps method to be imported from functools
         @wraps(f)
-        def wrapper(*args, **kwargs):
-            token = get_token_auth_header()
-            payload = verify_decode_jwt(token)
+        # define wrapper, takes in a couple of optional arguments (+args, ++kwargs)
+        def wrapper(*args,  **kwargs):
+            # add function need to call within wrapper
+            jwt = get_token_auth_header()
+            try:
+                # checking token is valid
+                payload = verify_decode_jwt(jwt)
+            except:
+                raise AuthError({
+                    'code': 'invalid_token',
+                    'description': 'Invalid token.'
+                }, 401)
             check_permissions(permission, payload)
-            return f(payload, *args, **kwargs)
-
+            # wrapper returns function with the arguments (provide jwt as a parameter to calling function)
+            return f(payload, *args,  **kwargs)
+        # requires_auth returns the wrapper
         return wrapper
     return requires_auth_decorator
+
+
+# def requires_auth(permission=''):
+#     def requires_auth_decorator(f):
+#         @wraps(f)
+#         def wrapper(*args, **kwargs):
+#             token = get_token_auth_header()
+#             payload = verify_decode_jwt(token)
+#             check_permissions(permission, payload)
+#             return f(payload, *args, **kwargs)
+#
+#         return wrapper
+#     return requires_auth_decorator
