@@ -84,15 +84,15 @@ def retrieve_drink_details(token):
 
 
 
-'''
-@TODO implement endpoint
-    POST /drinks
-        it should create a new row in the drinks table
-        it should require the 'post:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
-        or appropriate status code indicating reason for failure
-'''
+# '''
+# @TODO implement endpoint
+#     POST /drinks
+#         it should create a new row in the drinks table
+#         it should require the 'post:drinks' permission
+#         it should contain the drink.long() data representation
+#     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
+#         or appropriate status code indicating reason for failure
+# '''
 
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
@@ -129,17 +129,50 @@ def add_new_drink(token):
 
 
 
-'''
-@TODO implement endpoint
-    PATCH /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should update the corresponding row for <id>
-        it should require the 'patch:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-        or appropriate status code indicating reason for failure
-'''
+# '''
+# @TODO implement endpoint
+#     PATCH /drinks/<id>
+#         where <id> is the existing model id
+#         it should respond with a 404 error if <id> is not found
+#         it should update the corresponding row for <id>
+#         it should require the 'patch:drinks' permission
+#         it should contain the drink.long() data representation
+#     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
+#         or appropriate status code indicating reason for failure
+# '''
+
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def edit_existing_drink(token, id):
+    # Retreieve updated data from form
+    upd_title = request.form.get('title', None)
+    upd_recipe = request.form.get('recipe', None)
+
+    # if no new details sent, then abort 400
+    if (upd_title is None) and (upd_recipe is None):
+        abort(400)
+    # else attempt update
+    else:
+        # locate drink to be updated
+        upd_drink = Drink.query.filter(Drink.id == id).one_or_none()
+        # if no match found - abort 404
+        if upd_drink is None:
+            print ('ID not found')
+            abort(404)
+        else:
+            if upd_title is not None:
+                upd_drink.title = upd_title
+            if upd_recipe is not None:
+                upd_drink.recipe = upd_recipe
+            try:
+                upd_drink.update()
+            except:
+                abort(422)
+
+    return jsonify({
+        'success': True,
+        'drinks': upd_drink.long()
+    })
 
 
 '''
