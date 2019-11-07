@@ -97,13 +97,9 @@ def retrieve_drink_details(token):
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
 def add_new_drink(token):
-    new_title = request.form.get('title', None)
-    new_recipe = request.form.get('recipe', None)
 
-    # new_title = request.json.get('title', None)
-    # new_recipe = request.json.get('recipe', None)
-
-    # logging.debug('new title & recipe = ' + new_title + ', ' + new_recipe)
+    new_title = request.json.get('title', None)
+    new_recipe = json.dumps(request.json.get('recipe', None))
 
     # if missing info needed to create drink then abort 400
     if (new_title is None) or (new_recipe is None):
@@ -145,8 +141,8 @@ def add_new_drink(token):
 @requires_auth('patch:drinks')
 def edit_existing_drink(token, id):
     # Retreieve updated data from form
-    upd_title = request.form.get('title', None)
-    upd_recipe = request.form.get('recipe', None)
+    upd_title = request.json.get('title', None)
+    upd_recipe = json.dumps(request.json.get('recipe', None))
 
     # if no new details sent, then abort 400
     if (upd_title is None) and (upd_recipe is None):
