@@ -36,8 +36,7 @@ CORS(app)
 #         or appropriate status code indicating reason for failure
 # '''
 @app.route('/drinks')
-@requires_auth('get:drinks-detail')
-def retrieve_short_drink_info(token):
+def retrieve_drinks():
     drinks = Drink.query.all()
     # print('this will be drinks')
     # print(drinks)
@@ -58,14 +57,35 @@ def retrieve_short_drink_info(token):
 
 
 
-'''
-@TODO implement endpoint
-    GET /drinks-detail
-        it should require the 'get:drinks-detail' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
+# '''
+# @TODO implement endpoint
+#     GET /drinks-detail
+#         it should require the 'get:drinks-detail' permission
+#         it should contain the drink.long() data representation
+#     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
+#         or appropriate status code indicating reason for failure
+# '''
+@app.route('/drinks-detail')
+@requires_auth('get:drinks-detail')
+def retrieve_drink_details(token):
+    drinks = Drink.query.all()
+    # print('this will be drinks')
+    # print(drinks)
+    if drinks is None:
+        abort(404)
+
+    short_drinks = [Drink.long for drink in drinks]
+    # print ('this will be short_drinks')
+    # print (short_drinks)
+    if short_drinks is None:
+        print('unable to get short_drinks')
+        abort(404)
+
+    return jsonify({
+        'success': True,
+        'drinks': short_drinks
+    })
+
 
 
 '''
