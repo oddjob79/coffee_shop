@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
+import logging
 from flask_cors import CORS
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
@@ -10,6 +11,8 @@ from .auth.auth import AuthError, requires_auth, get_token_auth_header
 app = Flask(__name__)
 setup_db(app)
 CORS(app)
+
+logging.basicConfig(level=logging.DEBUG)
 
 '''
 @TODO uncomment the following line to initialize the datbase
@@ -38,22 +41,19 @@ CORS(app)
 @app.route('/drinks')
 def retrieve_drinks():
     drinks = Drink.query.all()
-    # print('this will be drinks')
-    # print(drinks)
     if drinks is None:
         abort(404)
 
-    short_drinks = [Drink.short for drink in drinks]
-    # print ('this will be short_drinks')
-    # print (short_drinks)
+    short_drinks = [dr.short() for dr in drinks]
+
     if short_drinks is None:
         print('unable to get short_drinks')
         abort(404)
-
-    return jsonify({
-        'success': True,
-        'drinks': short_drinks
-    })
+    else:
+        return jsonify({
+            'success': True,
+            'drinks': short_drinks
+        })
 
 
 
@@ -69,21 +69,17 @@ def retrieve_drinks():
 @requires_auth('get:drinks-detail')
 def retrieve_drink_details(token):
     drinks = Drink.query.all()
-    # print('this will be drinks')
-    # print(drinks)
     if drinks is None:
         abort(404)
 
-    short_drinks = [Drink.long for drink in drinks]
-    # print ('this will be short_drinks')
-    # print (short_drinks)
-    if short_drinks is None:
+    long_drinks = [dr.long() for dr in drinks]
+    if long_drinks is None:
         print('unable to get short_drinks')
         abort(404)
 
     return jsonify({
         'success': True,
-        'drinks': short_drinks
+        'drinks': long_drinks
     })
 
 
@@ -97,6 +93,40 @@ def retrieve_drink_details(token):
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+
+@app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def add_new_drink(token):
+    new_title = request.form.get('title', None)
+    new_recipe = request.form.get('recipe', None)
+
+    # new_title = request.json.get('title', None)
+    # new_recipe = request.json.get('recipe', None)
+
+    # logging.debug('new title & recipe = ' + new_title + ', ' + new_recipe)
+
+    # if missing info needed to create drink then abort 400
+    if (new_title is None) or (new_recipe is None):
+        abort(400)
+    # else attempt insert data into db
+    else:
+        new_drink = Drink(title=new_title, recipe=new_recipe)
+        try:
+            new_drink.insert()
+        except:
+            abort(422)
+
+    # locate id of newly created drink
+    created_drink = Drink.query.filter(Drink.title==new_title, Drink.recipe==new_recipe).one_or_none()
+
+    if created_drink is None:
+        abort(404)
+    else:
+        return jsonify({
+            'success': True,
+            'drinks': created_drink.long()
+        })
+
 
 
 '''
