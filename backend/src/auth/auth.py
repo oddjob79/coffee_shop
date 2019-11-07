@@ -5,9 +5,9 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
+AUTH0_DOMAIN = 'coffee-shop-rt.eu.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'dev'
+API_AUDIENCE = 'coffee-shop'
 
 ## AuthError Exception
 '''
@@ -31,7 +31,39 @@ class AuthError(Exception):
     return the token part of the header
 '''
 def get_token_auth_header():
-   raise Exception('Not Implemented')
+    print ('test1')
+    try:
+        # attempt to get the header from the request
+        auth_headers = request.headers['Authorization']
+        # split bearer and the token
+        header_parts = auth_headers.split(' ')
+    except:
+        # raise an AuthError if no header is present
+        if request.headers is None:
+            raise AuthError({
+                'code': 'no_request_header',
+                'description': 'There is no header on this request.'
+            }, 401)
+        if 'Authorization' not in request.headers:
+            raise AuthError({
+                'code': 'no_auth_in_header',
+                'description': 'No authorization details in request header.'
+            }, 401)
+        # raise an AuthError if the header is malformed
+        if len(header_parts) != 2:
+            raise AuthError({
+                'code': 'too_many_parts',
+                'description': 'Too many parts to Auth header.'
+            }, 401)
+        if header_parts[0].lower() != 'bearer':
+            raise AuthError({
+                'code': 'no_bearer_tag',
+                'description': 'Bearer tag not present or malformed.'
+            }, 401)
+
+    # return the token part of the header
+    return(header_parts[1])
+
 
 '''
 @TODO implement check_permissions(permission, payload) method
