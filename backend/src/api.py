@@ -20,21 +20,42 @@ CORS(app)
 
 ## ROUTES
 
-@app.route('/headers')
-def headers():
-    token = get_token_auth_header()
-    # print (token)
-    return 'Just testing'
+# @app.route('/headers')
+# @requires_auth('get:drinks')
+# def headers(token):
+#     print(token)
+#     return 'These are a few of my favourite things'
 
 
-'''
-@TODO implement endpoint
-    GET /drinks
-        it should be a public endpoint
-        it should contain only the drink.short() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
+# '''
+# @TODO implement endpoint
+#     GET /drinks
+#         it should be a public endpoint
+#         it should contain only the drink.short() data representation
+#     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
+#         or appropriate status code indicating reason for failure
+# '''
+@app.route('/drinks')
+@requires_auth('get:drinks-detail')
+def retrieve_short_drink_info(token):
+    drinks = Drink.query.all()
+    # print('this will be drinks')
+    # print(drinks)
+    if drinks is None:
+        abort(404)
+
+    short_drinks = [Drink.short for drink in drinks]
+    # print ('this will be short_drinks')
+    # print (short_drinks)
+    if short_drinks is None:
+        print('unable to get short_drinks')
+        abort(404)
+
+    return jsonify({
+        'success': True,
+        'drinks': short_drinks
+    })
+
 
 
 '''
@@ -112,7 +133,13 @@ def unprocessable(error):
 '''
 
 
-'''
-@TODO implement error handler for AuthError
-    error handler should conform to general task above
-'''
+# '''
+# @TODO implement error handler for AuthError
+#     error handler should conform to general task above
+# '''
+# error handler found on Stack Overflow
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
