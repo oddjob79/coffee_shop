@@ -186,6 +186,25 @@ def edit_existing_drink(token, id):
         or appropriate status code indicating reason for failure
 '''
 
+@app.route('/drinks/<int:id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_existing_drink(token, id):
+    # locate drink to be deleted
+    del_drink = Drink.query.filter(Drink.id == id).one_or_none()
+    # if no match found - abort 404
+    if del_drink is None:
+        print ('ID not found')
+        abort(404)
+    else:
+        try:
+            del_drink.delete()
+        except:
+            abort(422)
+
+    return jsonify({
+        'success': True,
+        'delete': id
+    })
 
 ## Error Handling
 '''
