@@ -23,12 +23,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 ## ROUTES
 
-# @app.route('/headers')
-# @requires_auth('get:drinks')
-# def headers(token):
-#     print(token)
-#     return 'These are a few of my favourite things'
-
 
 # '''
 # @TODO implement endpoint
@@ -97,23 +91,23 @@ def retrieve_drink_details(token):
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
 def add_new_drink(token):
-
     new_title = request.json.get('title', None)
-    new_recipe = json.dumps(request.json.get('recipe', None))
+    new_recipe = request.json.get('recipe', None)
 
     # if missing info needed to create drink then abort 400
     if (new_title is None) or (new_recipe is None):
         abort(400)
     # else attempt insert data into db
     else:
-        new_drink = Drink(title=new_title, recipe=new_recipe)
+        # json.dumps used to convert recipe to string for entry into db
+        new_drink = Drink(title=new_title, recipe=json.dumps(new_recipe))
         try:
             new_drink.insert()
         except:
             abort(422)
 
-    # locate id of newly created drink
-    created_drink = Drink.query.filter(Drink.title==new_title, Drink.recipe==new_recipe).one_or_none()
+    # locate id of newly created drink (json.dumps used to read string from db)
+    created_drink = Drink.query.filter(Drink.title==new_title, Drink.recipe==json.dumps(new_recipe)).one_or_none()
 
     if created_drink is None:
         abort(404)
@@ -142,7 +136,7 @@ def add_new_drink(token):
 def edit_existing_drink(token, id):
     # Retreieve updated data from form
     upd_title = request.json.get('title', None)
-    upd_recipe = json.dumps(request.json.get('recipe', None))
+    upd_recipe = request.json.get('recipe', None)
 
     # if no new details sent, then abort 400
     if (upd_title is None) and (upd_recipe is None):
@@ -159,15 +153,20 @@ def edit_existing_drink(token, id):
             if upd_title is not None:
                 upd_drink.title = upd_title
             if upd_recipe is not None:
-                upd_drink.recipe = upd_recipe
+                # json.dumps used to convert recipe to string for entry into db
+                upd_drink.recipe = json.dumps(upd_recipe)
             try:
                 upd_drink.update()
             except:
                 abort(422)
 
+        # build array for return to requestor
+        upd_drink_arr = []
+        upd_drink_arr.extend((upd_drink.title, upd_drink.recipe))
+
     return jsonify({
         'success': True,
-        'drinks': upd_drink.long()
+        'drinks': upd_drink_arr
     })
 
 
