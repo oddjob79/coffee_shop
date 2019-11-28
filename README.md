@@ -1,6 +1,6 @@
 # Build a RESTful API - endpoints require role-based authorization with JWT gathered from Auth0 user
 
-Third course in the [Udacity Full Stack Nanodegree](https://www.udacity.com/course/full-stack-web-developer-nanodegree--nd004): Identity and Authentication Management
+Third piece of coursework in the [Udacity Full Stack Nanodegree](https://www.udacity.com/course/full-stack-web-developer-nanodegree--nd004): Identity and Authentication Management
 
 The goal of the project was to build a simple API with endpoints which would require a valid JWT be passed to it containing a valid user permission. We were to use a single-page application setup in Auth0 to handle the user login and JWT creation and validation process.
 
